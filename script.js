@@ -47,11 +47,12 @@ function loadQuestions() {
       input.name = `question${index}`;
       input.value = choice;
 
-      // Restore checked from sessionStorage
+      // Restore selected choice from sessionStorage
       if (sessionStorage.getItem(`question${index}`) === choice) {
         input.checked = true;
       }
 
+      // Save selected choice to sessionStorage on change
       input.addEventListener("change", () => {
         sessionStorage.setItem(`question${index}`, choice);
       });
@@ -79,7 +80,7 @@ function calculateScore() {
 
   document.getElementById("score").innerText = `Your score is ${score} out of ${questions.length}.`;
 
-  // Also store in localStorage
+  // Save score in localStorage
   localStorage.setItem("score", score);
 }
 
