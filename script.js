@@ -1,92 +1,83 @@
-// your JS code here
+const questionsContainer = document.getElementById("questions");
+const submitBtn = document.getElementById("submit");
+const scoreContainer = document.getElementById("score");
 
 const questions = [
   {
+    question: "What is 2+2?",
+    choices: ["3", "4", "5", "22"],
+    answer: "4"
+  },
+  {
     question: "What is the capital of France?",
-    choices: ["Paris", "London", "Berlin", "Madrid"],
-    answer: "Paris",
+    choices: ["London", "Paris", "Berlin", "Madrid"],
+    answer: "Paris"
   },
   {
-    question: "What is the highest mountain in the world?",
-    choices: ["Everest", "Kilimanjaro", "Denali", "Matterhorn"],
-    answer: "Everest",
+    question: "What is 10/2?",
+    choices: ["2", "5", "10", "20"],
+    answer: "5"
   },
   {
-    question: "What is the largest country by area?",
-    choices: ["Russia", "China", "Canada", "United States"],
-    answer: "Russia",
+    question: "What color is the sky?",
+    choices: ["Green", "Blue", "Red", "Yellow"],
+    answer: "Blue"
   },
   {
-    question: "Which is the largest planet in our solar system?",
-    choices: ["Earth", "Jupiter", "Mars", "Saturn"],
-    answer: "Jupiter",
-  },
-  {
-    question: "What is the capital of Canada?",
-    choices: ["Toronto", "Montreal", "Vancouver", "Ottawa"],
-    answer: "Ottawa",
-  },
+    question: "Which animal barks?",
+    choices: ["Cat", "Dog", "Cow", "Elephant"],
+    answer: "Dog"
+  }
 ];
 
-const questionsElement = document.getElementById("questions");
-
-// Fetch user answers from session storage if available
-let userAnswers = JSON.parse(sessionStorage.getItem("progress")) || {};
+// Load saved answers from localStorage
+let savedAnswers = JSON.parse(localStorage.getItem('savedAnswers')) || {};
 
 function renderQuestions() {
-  questionsElement.innerHTML = ""; // Clear before rendering again
-  for (let i = 0; i < questions.length; i++) {
-    const question = questions[i];
-    const questionDiv = document.createElement("div");
-
-    const questionText = document.createElement("p");
-    questionText.innerText = question.question;
-    questionDiv.appendChild(questionText);
-
-    for (let j = 0; j < question.choices.length; j++) {
-      const choice = question.choices[j];
-
-      const choiceLabel = document.createElement("label");
-      const choiceInput = document.createElement("input");
-
-      choiceInput.type = "radio";
-      choiceInput.name = `question-${i}`;
-      choiceInput.value = choice;
-
-      // Restore saved selection
-      if (userAnswers[i] === choice) {
-        choiceInput.checked = true;
-      }
-
-      // Save progress on selecting an option
-      choiceInput.addEventListener("change", function () {
-        userAnswers[i] = this.value;
-        sessionStorage.setItem("progress", JSON.stringify(userAnswers));
-      });
-
-      choiceLabel.appendChild(choiceInput);
-      choiceLabel.appendChild(document.createTextNode(choice));
-      questionDiv.appendChild(choiceLabel);
-      questionDiv.appendChild(document.createElement("br"));
-    }
-
-    questionsElement.appendChild(questionDiv);
-  }
+  questions.forEach((q, idx) => {
+    const div = document.createElement("div");
+    div.innerHTML = `<p>${q.question}</p>` +
+      q.choices.map(choice => `
+        <label>
+          <input 
+            type="radio" 
+            name="question${idx}" 
+            value="${choice}" 
+            ${savedAnswers[idx] === choice ? 'checked' : ''}
+          >
+          ${choice}
+        </label><br>`).join('');
+    questionsContainer.appendChild(div);
+  });
 }
 
-renderQuestions();
+function saveAnswer(idx, choice) {
+  savedAnswers[idx] = choice;
+  localStorage.setItem('savedAnswers', JSON.stringify(savedAnswers));
+}
 
-// Handle quiz submission
-document.getElementById("submit").addEventListener("click", function () {
+// Attach event listeners to radios
+function attachListeners() {
+  questionsContainer.querySelectorAll('input[type="radio"]').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const name = e.target.name;
+      const index = parseInt(name.replace('question', ''), 10);
+      saveAnswer(index, e.target.value);
+    });
+  });
+}
+
+submitBtn.addEventListener('click', () => {
   let score = 0;
-
-  for (let i = 0; i < questions.length; i++) {
-    if (userAnswers[i] && userAnswers[i] === questions[i].answer) {
+  questions.forEach((q, idx) => {
+    if (savedAnswers[idx] === q.answer) {
       score++;
     }
-  }
-
-  document.getElementById("score").innerText = `Your score is ${score} out of 5.`;
-
-  localStorage.setItem("score", score.toString());
+  });
+  scoreContainer.innerText = `Your score is ${score} out of 5.`;
+  localStorage.setItem('score', score.toString());
 });
+
+// Initial render
+renderQuestions();
+attachListeners();
