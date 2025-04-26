@@ -6,78 +6,87 @@ const questions = [
   {
     question: "What is 2+2?",
     choices: ["3", "4", "5", "22"],
-    answer: "4"
+    correctAnswer: "4"
   },
   {
     question: "What is the capital of France?",
-    choices: ["London", "Paris", "Berlin", "Madrid"],
-    answer: "Paris"
+    choices: ["Berlin", "Madrid", "Paris", "Rome"],
+    correctAnswer: "Paris"
   },
   {
-    question: "What is 10/2?",
-    choices: ["2", "5", "10", "20"],
-    answer: "5"
+    question: "Which planet is known as the Red Planet?",
+    choices: ["Earth", "Venus", "Mars", "Jupiter"],
+    correctAnswer: "Mars"
   },
   {
-    question: "What color is the sky?",
-    choices: ["Green", "Blue", "Red", "Yellow"],
-    answer: "Blue"
+    question: "What is the boiling point of water?",
+    choices: ["90°C", "100°C", "80°C", "110°C"],
+    correctAnswer: "100°C"
   },
   {
-    question: "Which animal barks?",
-    choices: ["Cat", "Dog", "Cow", "Elephant"],
-    answer: "Dog"
+    question: "Who wrote 'Hamlet'?",
+    choices: ["Charles Dickens", "William Shakespeare", "J.K. Rowling", "Mark Twain"],
+    correctAnswer: "William Shakespeare"
   }
 ];
 
-// Load saved answers from localStorage
-let savedAnswers = JSON.parse(localStorage.getItem('savedAnswers')) || {};
+function loadQuestions() {
+  const questionsDiv = document.getElementById("questions");
+  questionsDiv.innerHTML = "";
 
-function renderQuestions() {
-  questions.forEach((q, idx) => {
-    const div = document.createElement("div");
-    div.innerHTML = `<p>${q.question}</p>` +
-      q.choices.map(choice => `
-        <label>
-          <input 
-            type="radio" 
-            name="question${idx}" 
-            value="${choice}" 
-            ${savedAnswers[idx] === choice ? 'checked' : ''}
-          >
-          ${choice}
-        </label><br>`).join('');
-    questionsContainer.appendChild(div);
-  });
-}
+  questions.forEach((q, index) => {
+    const questionDiv = document.createElement("div");
 
-function saveAnswer(idx, choice) {
-  savedAnswers[idx] = choice;
-  localStorage.setItem('savedAnswers', JSON.stringify(savedAnswers));
-}
+    const questionText = document.createElement("p");
+    questionText.innerText = q.question;
+    questionDiv.appendChild(questionText);
 
-// Attach event listeners to radios
-function attachListeners() {
-  questionsContainer.querySelectorAll('input[type="radio"]').forEach(input => {
-    input.addEventListener('change', (e) => {
-      const name = e.target.name;
-      const index = parseInt(name.replace('question', ''), 10);
-      saveAnswer(index, e.target.value);
+    q.choices.forEach(choice => {
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = `question${index}`;
+      input.value = choice;
+
+      // Restore checked from sessionStorage
+      if (sessionStorage.getItem(`question${index}`) === choice) {
+        input.checked = true;
+      }
+
+      input.addEventListener("change", () => {
+        sessionStorage.setItem(`question${index}`, choice);
+      });
+
+      const label = document.createElement("label");
+      label.innerText = choice;
+
+      questionDiv.appendChild(input);
+      questionDiv.appendChild(label);
     });
+
+    questionsDiv.appendChild(questionDiv);
   });
 }
 
-submitBtn.addEventListener('click', () => {
+function calculateScore() {
   let score = 0;
-  questions.forEach((q, idx) => {
-    if (savedAnswers[idx] === q.answer) {
+
+  questions.forEach((q, index) => {
+    const selected = sessionStorage.getItem(`question${index}`);
+    if (selected === q.correctAnswer) {
       score++;
     }
   });
-  scoreContainer.innerText = `Your score is ${score} out of 5.`;
-  localStorage.setItem('score', score.toString());
-});
 
-// Initial render
-renderQuestions();
-attachListeners();
+  document.getElementById("score").innerText = `Your score is ${score} out of ${questions.length}.`;
+
+  // Also store in localStorage
+  localStorage.setItem("score", score);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadQuestions();
+
+  document.getElementById("submit").addEventListener("click", () => {
+    calculateScore();
+  });
+});
