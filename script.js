@@ -31,8 +31,10 @@ const questions = [
 ];
 
 function loadQuestions() {
-  const questionsDiv = document.getElementById("questions");
-  questionsDiv.innerHTML = "";
+  questionsContainer.innerHTML = "";
+
+  // Load saved progress if any
+  const savedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
 
   questions.forEach((q, index) => {
     const questionDiv = document.createElement("div");
@@ -47,14 +49,16 @@ function loadQuestions() {
       input.name = `question${index}`;
       input.value = choice;
 
-      // Restore selected choice from sessionStorage
-      if (sessionStorage.getItem(`question${index}`) === choice) {
+      // Restore from saved progress
+      if (savedProgress[`question${index}`] === choice) {
         input.checked = true;
       }
 
-      // Save selected choice to sessionStorage on change
+      // On change, update session storage
       input.addEventListener("change", () => {
-        sessionStorage.setItem(`question${index}`, choice);
+        const updatedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
+        updatedProgress[`question${index}`] = choice;
+        sessionStorage.setItem("progress", JSON.stringify(updatedProgress));
       });
 
       const label = document.createElement("label");
@@ -64,30 +68,39 @@ function loadQuestions() {
       questionDiv.appendChild(label);
     });
 
-    questionsDiv.appendChild(questionDiv);
+    questionsContainer.appendChild(questionDiv);
   });
 }
 
 function calculateScore() {
   let score = 0;
+  const savedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
 
   questions.forEach((q, index) => {
-    const selected = sessionStorage.getItem(`question${index}`);
+    const selected = savedProgress[`question${index}`];
     if (selected === q.correctAnswer) {
       score++;
     }
   });
 
-  document.getElementById("score").innerText = `Your score is ${score} out of ${questions.length}.`;
+  scoreContainer.innerText = `Your score is ${score} out of ${questions.length}.`;
 
   // Save score in localStorage
   localStorage.setItem("score", score);
 }
 
+function loadScore() {
+  const storedScore = localStorage.getItem("score");
+  if (storedScore !== null) {
+    scoreContainer.innerText = `Your last score was ${storedScore} out of ${questions.length}.`;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   loadQuestions();
+  loadScore();
 
-  document.getElementById("submit").addEventListener("click", () => {
+  submitBtn.addEventListener("click", () => {
     calculateScore();
   });
 });
