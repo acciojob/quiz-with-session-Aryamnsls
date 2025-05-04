@@ -37,6 +37,7 @@ function loadQuestions() {
 
   questions.forEach((q, index) => {
     const questionDiv = document.createElement("div");
+    questionDiv.classList.add("question"); // ✅ add this class
 
     const questionText = document.createElement("p");
     questionText.innerText = q.question;
@@ -71,7 +72,11 @@ function loadQuestions() {
 
     questionsContainer.appendChild(questionDiv);
   });
+
+  // ✅ Add attribute when questions finish loading
+  questionsContainer.setAttribute("data-loaded", "true");
 }
+
 
 function calculateScore() {
   const savedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
