@@ -33,7 +33,6 @@ const questions = [
 function loadQuestions() {
   questionsContainer.innerHTML = "";
 
-  // Load saved progress if any
   const savedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
 
   questions.forEach((q, index) => {
@@ -43,18 +42,19 @@ function loadQuestions() {
     questionText.innerText = q.question;
     questionDiv.appendChild(questionText);
 
-    q.choices.forEach(choice => {
+    q.choices.forEach((choice, choiceIndex) => {
       const input = document.createElement("input");
+      const inputId = `q${index}c${choiceIndex}`;
+
       input.type = "radio";
       input.name = `question${index}`;
       input.value = choice;
+      input.id = inputId;
 
-      // Restore from saved progress
       if (savedProgress[`question${index}`] === choice) {
         input.checked = true;
       }
 
-      // On change, update session storage
       input.addEventListener("change", () => {
         const updatedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
         updatedProgress[`question${index}`] = choice;
@@ -62,6 +62,7 @@ function loadQuestions() {
       });
 
       const label = document.createElement("label");
+      label.setAttribute("for", inputId);
       label.innerText = choice;
 
       questionDiv.appendChild(input);
@@ -73,8 +74,8 @@ function loadQuestions() {
 }
 
 function calculateScore() {
-  let score = 0;
   const savedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
+  let score = 0;
 
   questions.forEach((q, index) => {
     const selected = savedProgress[`question${index}`];
@@ -83,16 +84,20 @@ function calculateScore() {
     }
   });
 
-  scoreContainer.innerText = `Your score is ${score} out of ${questions.length}.`;
+  const message = `Your score is ${score} out of ${questions.length}.`;
+  scoreContainer.innerText = message;
 
-  // Save score in localStorage
+  // Save to localStorage
   localStorage.setItem("score", score);
+  localStorage.setItem("submitted", "true");
 }
 
 function loadScore() {
-  const storedScore = localStorage.getItem("score");
-  if (storedScore !== null) {
-    scoreContainer.innerText = `Your last score was ${storedScore} out of ${questions.length}.`;
+  const score = localStorage.getItem("score");
+  const submitted = localStorage.getItem("submitted");
+
+  if (score !== null && submitted === "true") {
+    scoreContainer.innerText = `Your score is ${score} out of ${questions.length}.`;
   }
 }
 
