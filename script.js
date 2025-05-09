@@ -32,12 +32,12 @@ const questions = [
 
 function loadQuestions() {
   questionsContainer.innerHTML = "";
-
   const savedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
+  const submitted = localStorage.getItem("submitted") === "true";
 
   questions.forEach((q, index) => {
     const questionDiv = document.createElement("div");
-    questionDiv.classList.add("question"); // ✅ add this class
+    questionDiv.classList.add("question");
 
     const questionText = document.createElement("p");
     questionText.innerText = q.question;
@@ -56,11 +56,16 @@ function loadQuestions() {
         input.checked = true;
       }
 
-      input.addEventListener("change", () => {
-        const updatedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
-        updatedProgress[`question${index}`] = choice;
-        sessionStorage.setItem("progress", JSON.stringify(updatedProgress));
-      });
+      if (!submitted) {
+        input.addEventListener("change", () => {
+          const updatedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
+          updatedProgress[`question${index}`] = choice;
+          sessionStorage.setItem("progress", JSON.stringify(updatedProgress));
+        });
+      } else {
+        // Disable selection if already submitted
+        input.disabled = true;
+      }
 
       const label = document.createElement("label");
       label.setAttribute("for", inputId);
@@ -73,10 +78,8 @@ function loadQuestions() {
     questionsContainer.appendChild(questionDiv);
   });
 
-  // ✅ Add attribute when questions finish loading
   questionsContainer.setAttribute("data-loaded", "true");
 }
-
 
 function calculateScore() {
   const savedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
@@ -95,6 +98,11 @@ function calculateScore() {
   // Save to localStorage
   localStorage.setItem("score", score);
   localStorage.setItem("submitted", "true");
+
+  // Disable all radio inputs after submission
+  document.querySelectorAll("input[type='radio']").forEach(input => {
+    input.disabled = true;
+  });
 }
 
 function loadScore() {
@@ -111,6 +119,9 @@ document.addEventListener("DOMContentLoaded", () => {
   loadScore();
 
   submitBtn.addEventListener("click", () => {
-    calculateScore();
+    const submitted = localStorage.getItem("submitted");
+    if (submitted !== "true") {
+      calculateScore();
+    }
   });
 });
