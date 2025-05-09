@@ -1,8 +1,9 @@
+// ✅ Only declared once at the top — keep this
 const questionsContainer = document.getElementById("questions");
 const submitBtn = document.getElementById("submit");
 const scoreContainer = document.getElementById("score");
 
-// script.js
+// Questions array
 const questions = [
   {
     question: "What is 2 + 2?",
@@ -21,7 +22,12 @@ const questions = [
   },
   {
     question: "CSS stands for?",
-    choices: ["Colorful Style Sheets", "Cascading Style Sheets", "Creative Style Sheets", "Cool Style Sheets"],
+    choices: [
+      "Colorful Style Sheets",
+      "Cascading Style Sheets",
+      "Creative Style Sheets",
+      "Cool Style Sheets"
+    ],
     answer: 1
   },
   {
@@ -30,10 +36,6 @@ const questions = [
     answer: 2
   }
 ];
-
-const questionsContainer = document.getElementById("questions");
-const submitBtn = document.getElementById("submit");
-const scoreContainer = document.getElementById("score");
 
 const sessionAnswers = JSON.parse(sessionStorage.getItem("answers") || "[]");
 const submitted = localStorage.getItem("submitted") === "true";
