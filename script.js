@@ -2,125 +2,116 @@ const questionsContainer = document.getElementById("questions");
 const submitBtn = document.getElementById("submit");
 const scoreContainer = document.getElementById("score");
 
+// script.js
 const questions = [
   {
-    question: "What is 2+2?",
-    choices: ["3", "4", "5", "22"],
-    correctAnswer: "4"
+    question: "What is 2 + 2?",
+    choices: ["2", "3", "4", "5"],
+    answer: 2
   },
   {
-    question: "What is the capital of France?",
-    choices: ["Berlin", "Madrid", "Paris", "Rome"],
-    correctAnswer: "Paris"
+    question: "Capital of France?",
+    choices: ["Berlin", "Madrid", "Paris", "Lisbon"],
+    answer: 2
   },
   {
-    question: "Which planet is known as the Red Planet?",
-    choices: ["Earth", "Venus", "Mars", "Jupiter"],
-    correctAnswer: "Mars"
+    question: "Best JS framework?",
+    choices: ["React", "Vue", "Angular", "Svelte"],
+    answer: 0
   },
   {
-    question: "What is the boiling point of water?",
-    choices: ["90°C", "100°C", "80°C", "110°C"],
-    correctAnswer: "100°C"
+    question: "CSS stands for?",
+    choices: ["Colorful Style Sheets", "Cascading Style Sheets", "Creative Style Sheets", "Cool Style Sheets"],
+    answer: 1
   },
   {
-    question: "Who wrote 'Hamlet'?",
-    choices: ["Charles Dickens", "William Shakespeare", "J.K. Rowling", "Mark Twain"],
-    correctAnswer: "William Shakespeare"
+    question: "HTML is?",
+    choices: ["Programming Language", "Database", "Markup Language", "Server"],
+    answer: 2
   }
 ];
 
-function loadQuestions() {
+const questionsContainer = document.getElementById("questions");
+const submitBtn = document.getElementById("submit");
+const scoreContainer = document.getElementById("score");
+
+const sessionAnswers = JSON.parse(sessionStorage.getItem("answers") || "[]");
+const submitted = localStorage.getItem("submitted") === "true";
+const storedScore = localStorage.getItem("score");
+
+// Function to render questions
+function renderQuestions() {
   questionsContainer.innerHTML = "";
-  const savedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
-  const submitted = localStorage.getItem("submitted") === "true";
 
-  questions.forEach((q, index) => {
-    const questionDiv = document.createElement("div");
-    questionDiv.classList.add("question");
+  questions.forEach((q, i) => {
+    const qDiv = document.createElement("div");
+    const qText = document.createElement("p");
+    qText.textContent = q.question.endsWith("?") ? q.question : q.question + "?";
+    qDiv.appendChild(qText);
 
-    const questionText = document.createElement("p");
-    questionText.innerText = q.question;
-    questionDiv.appendChild(questionText);
-
-    q.choices.forEach((choice, choiceIndex) => {
+    q.choices.forEach((choice, j) => {
       const input = document.createElement("input");
-      const inputId = `q${index}c${choiceIndex}`;
-
       input.type = "radio";
-      input.name = `question${index}`;
-      input.value = choice;
-      input.id = inputId;
+      input.name = `question${i}`;
+      input.value = j;
 
-      if (savedProgress[`question${index}`] === choice) {
+      if (parseInt(sessionAnswers[i]) === j) {
         input.checked = true;
       }
 
       if (!submitted) {
-        input.addEventListener("change", () => {
-          const updatedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
-          updatedProgress[`question${index}`] = choice;
-          sessionStorage.setItem("progress", JSON.stringify(updatedProgress));
+        input.addEventListener("click", () => {
+          sessionAnswers[i] = j;
+          sessionStorage.setItem("answers", JSON.stringify(sessionAnswers));
         });
       } else {
-        // Disable selection if already submitted
         input.disabled = true;
       }
 
       const label = document.createElement("label");
-      label.setAttribute("for", inputId);
-      label.innerText = choice;
+      label.textContent = choice;
+      label.prepend(input);
 
-      questionDiv.appendChild(input);
-      questionDiv.appendChild(label);
+      qDiv.appendChild(label);
     });
 
-    questionsContainer.appendChild(questionDiv);
+    questionsContainer.appendChild(qDiv);
   });
-
-  questionsContainer.setAttribute("data-loaded", "true");
 }
 
+// Function to calculate and show score
 function calculateScore() {
-  const savedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
   let score = 0;
-
-  questions.forEach((q, index) => {
-    const selected = savedProgress[`question${index}`];
-    if (selected === q.correctAnswer) {
+  sessionAnswers.forEach((ans, idx) => {
+    if (parseInt(ans) === questions[idx].answer) {
       score++;
     }
   });
 
-  const message = `Your score is ${score} out of ${questions.length}.`;
-  scoreContainer.innerText = message;
-
-  // Save to localStorage
-  localStorage.setItem("score", score);
+  const scoreText = `Your score is ${score} out of ${questions.length}.`;
+  scoreContainer.textContent = scoreText;
+  localStorage.setItem("score", score.toString());
   localStorage.setItem("submitted", "true");
 
-  // Disable all radio inputs after submission
-  document.querySelectorAll("input[type='radio']").forEach(input => {
+  // Disable all inputs
+  document.querySelectorAll("input[type='radio']").forEach((input) => {
     input.disabled = true;
   });
 }
 
-function loadScore() {
-  const score = localStorage.getItem("score");
-  const submitted = localStorage.getItem("submitted");
-
-  if (score !== null && submitted === "true") {
-    scoreContainer.innerText = `Your score is ${score} out of ${questions.length}.`;
+// Show stored score if available
+function showStoredScore() {
+  if (submitted && storedScore !== null) {
+    scoreContainer.textContent = `Your score is ${storedScore} out of ${questions.length}.`;
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  loadQuestions();
-  loadScore();
+  renderQuestions();
+  showStoredScore();
 
   submitBtn.addEventListener("click", () => {
-    const submitted = localStorage.getItem("submitted");
-    if (submitted !== "true") {
+    if (!submitted) {
       calculateScore();
     }
   });
